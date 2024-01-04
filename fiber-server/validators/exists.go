@@ -10,11 +10,6 @@ import (
 )
 
 func Exists(fl validator.FieldLevel) bool {
-	//if !fl.Field().IsValid() {
-	//return true
-	//}
-	//return true
-
 	params := strings.Split(fl.Param(), ".")
 	table := params[0]
 	column := "id"

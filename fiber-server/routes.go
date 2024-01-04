@@ -23,6 +23,7 @@ func RegisterRoutes(app *fiber.App) {
 	eventsApi.Put(
 		"/", middleware.Validate(eventHandlers.SaveEvent{}), middleware.IsAuthorised, eventHandlers.UpdateEvent,
 	)
+	eventsApi.Post("/search", eventHandlers.SearchEvents)
 	authApi := app.Group("/api/auth")
 	authApi.Post(
 		"/register", middleware.Validate(userHandlers.RegisterUserRequest{}), userHandlers.Register,

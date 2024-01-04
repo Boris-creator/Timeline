@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 type eventRole struct {
@@ -20,8 +21,8 @@ type SaveEvent struct {
 	Description   string      `json:"description" validate:"required"`
 	DateFrom      string      `json:"dateFrom"`
 	DateTo        string      `json:"dateTo"`
-	PrecisionFrom string      `json:"precisionFrom"`
-	PrecisionTo   string      `json:"precisionTo"`
+	PrecisionFrom string      `json:"precisionFrom" validate:"oneof=year month day hour"`
+	PrecisionTo   string      `json:"precisionTo" validate:"oneof=year month day hour"`
 	EventRoles    []eventRole `json:"eventRoles" validate:"required,dive"`
 }
 
@@ -36,21 +37,28 @@ func StoreEvent(c *fiber.Ctx) error {
 	}
 
 	userId := auth.GetCtxUserData(c).Id
-
 	req.UserId = userId
-	db.Database.Create(&req)
 
-	for roleName, items := range eventParticipants {
-		for _, participant := range items {
-			roleIdx := sort.Search(len(req.EventRoles), func(i int) bool {
-				return req.EventRoles[i].Name == roleName
-			})
-			participant.EventId = req.ID
-			participant.UserId = userId
-			participant.RoleId = req.EventRoles[roleIdx].ID
-			db.Database.Create(&participant)
+	db.Database.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&req).Error; err != nil {
+			return err
 		}
-	}
+
+		for roleName, items := range eventParticipants {
+			for _, participant := range items {
+				roleIdx := sort.Search(len(req.EventRoles), func(i int) bool {
+					return req.EventRoles[i].Name == roleName
+				})
+				participant.EventId = req.ID
+				participant.UserId = userId
+				participant.RoleId = req.EventRoles[roleIdx].ID
+				if err := tx.Create(&participant).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 
 	return c.JSON(req)
 }
@@ -63,4 +71,10 @@ func UpdateEvent(c *fiber.Ctx) error {
 	db.Database.Create(&req)
 
 	return c.JSON(req)
+}
+
+func SearchEvents(c *fiber.Ctx) error {
+	var events []event.Event
+	db.Database.Preload("EventRoles").Find(&events)
+	return c.JSON(events)
 }

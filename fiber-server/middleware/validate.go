@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -37,13 +38,22 @@ func Validate[T any](structure T) func(*fiber.Ctx) error {
 }
 
 func getErrorMessage(fieldError validator.FieldError) string {
-	messages := map[string]string{
-		"required": "is required",
-		"exists":   "does not exist",
+	messages := map[string]func(...string) string{
+		"required": func(s ...string) string {
+			return fmt.Sprintf("The field %s is required", s[0])
+		},
+		"exists": func(s ...string) string {
+			return fmt.Sprintf("Such %s does not exist in %s", s[0], s[1])
+		},
+		"oneof": func(s ...string) string {
+			return fmt.Sprintf("The field %s must be one of %s", s[0], strings.Join(strings.Split(s[1], " "), ", "))
+		},
 	}
-	message, ok := messages[fieldError.Tag()]
+	getMessage, ok := messages[fieldError.Tag()]
 	if !ok {
-		message = fieldError.Tag()
+		getMessage = func(s ...string) string {
+			return fmt.Sprintf("The field %s %s", s[0], fieldError.Tag())
+		}
 	}
-	return fmt.Sprintf("The field %s %s", fieldError.Field(), message)
+	return getMessage(fieldError.Field(), fieldError.Param())
 }

@@ -1,4 +1,4 @@
-function test () {
+function testCreate () {
   fetch('/api/events', {
     method: 'POST',
     headers: {
@@ -19,6 +19,16 @@ function test () {
         }]
       }],
     })
+  })
+}
+
+function testSearch () {
+  fetch('/api/events/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify({})
   })
 }
 
@@ -48,4 +58,4 @@ function testLogin() {
   })
 }
 
-testLogin().then(test)
+testLogin().then(testCreate).then(testSearch)

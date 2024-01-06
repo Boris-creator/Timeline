@@ -13,6 +13,7 @@ const (
 
 type Event struct {
 	gorm.Model
+	ID                uint               `gorm:"primarykey" json:"id"`
 	Name              string             `gorm:"type:varchar(255);not null;" json:"name"`
 	Description       string             `gorm:"type:text;" json:"description"`
 	DateFrom          string             `gorm:"type:time;"`

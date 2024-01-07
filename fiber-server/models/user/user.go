@@ -8,9 +8,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Password          string                   `gorm:"not null" json:"-"`
+	Password          string                   `json:"-"`
 	Login             string                   `gorm:"not null;unique;"`
-	EventDescriptions []event.EventDescription `gorm:"foreignKey:AuthorId"`
-	Events            []event.Event            `gorm:"foreignKey:UserId"`
+	EventDescriptions []event.EventDescription `gorm:"foreignKey:AuthorId;"`
+	Events            []event.Event            `gorm:"foreignKey:UserId;"`
 	EventParticipants []event.EventParticipant `gorm:"foreignKey:UserId;"`
+	Accounts          []GithubUser             `gorm:"foreignKey:UserId;"`
 }

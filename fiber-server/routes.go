@@ -2,6 +2,7 @@ package main
 
 import (
 	eventHandlers "fiber-server/handlers/event"
+	"fiber-server/handlers/oauth"
 	userHandlers "fiber-server/handlers/user"
 	"fiber-server/middleware"
 
@@ -31,4 +32,7 @@ func RegisterRoutes(app *fiber.App) {
 	authApi.Post(
 		"/login", middleware.Validate(userHandlers.LoginUserRequest{}), userHandlers.Login,
 	)
+
+	app.Get("/github/login", oauth.GithubLogin)
+	app.Get("/github/callback", oauth.GithubCallback)
 }

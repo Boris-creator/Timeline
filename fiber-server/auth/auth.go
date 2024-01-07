@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fiber-server/auth/oauth"
 	"fiber-server/db"
 	"fiber-server/models/user"
 	"os"
@@ -34,6 +35,23 @@ func Register(credentials Credentials) (user.User, error) {
 	}
 
 	return user, nil
+}
+
+func RegisterByGithub(account oauth.GithubUserData) {
+	githubUser := user.GithubUser{
+		Login:     account.Login,
+		GithubId:  account.GithubId,
+		AvatarUrl: account.AvatarUrl,
+	}
+	var count int64
+	db.Database.Model(&githubUser).Where("github_id = ?", githubUser.GithubId).Count(&count)
+	if count == 0 {
+		user := user.User{
+			Login:    githubUser.Login,
+			Accounts: []user.GithubUser{githubUser},
+		}
+		db.Database.Create(&user)
+	}
 }
 
 func FindUserByCredentials(credentials Credentials) (user.User, error) {

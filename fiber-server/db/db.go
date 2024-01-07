@@ -33,6 +33,7 @@ func ConnectDB() error {
 
 	Database.AutoMigrate(
 		&user.User{},
+		&user.GithubUser{},
 		&event.Event{},
 		&event.EventDescription{},
 		&event.EventRole{},

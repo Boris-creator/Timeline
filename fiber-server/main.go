@@ -15,13 +15,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type SaveEventParticipant struct {
-	DateFrom      *string `json:"dateFrom"`
-	DateTo        *string `json:"dateTo"`
-	PrecisionFrom *string `json:"precisionFrom"`
-	PrecisionTo   *string `json:"precisionTo"`
-}
-
 func main() {
 	godotenv.Load(".env")
 

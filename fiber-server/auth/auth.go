@@ -2,9 +2,10 @@ package auth
 
 import (
 	"errors"
+	"fiber-server/auth/oauth"
 	"fiber-server/db"
+	jwtutils "fiber-server/jwtUtils"
 	"fiber-server/models/user"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,6 +37,28 @@ func Register(credentials Credentials) (user.User, error) {
 	return user, nil
 }
 
+func RegisterByGithub(account oauth.GithubUserData) (user.User, user.GithubUser) {
+	githubUser := user.GithubUser{
+		Login:     account.Login,
+		GithubId:  account.GithubId,
+		AvatarUrl: account.AvatarUrl,
+	}
+
+	var existingGithubUser user.GithubUser
+	isFound := db.Database.Model(&githubUser).
+		Preload("User").
+		Where("github_id = ?", githubUser.GithubId).First(&existingGithubUser)
+	if isFound.RowsAffected == 0 {
+		user := user.User{
+			Login:    githubUser.Login,
+			Accounts: []user.GithubUser{githubUser},
+		}
+		db.Database.Create(&user)
+		return user, githubUser
+	}
+	return existingGithubUser.User, existingGithubUser
+}
+
 func FindUserByCredentials(credentials Credentials) (user.User, error) {
 	var existingUser user.User
 	result := db.Database.Where(map[string]string{
@@ -58,9 +81,18 @@ func GenerateToken(user user.User) string {
 		"exp":   time.Now().Add(time.Hour * 48).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-	return t
+	return jwtutils.GenerateTokenString(claims)
+}
+func GenerateTokenWithGH(user user.User, account user.GithubUser) string {
+	claims := jwt.MapClaims{
+		"id":           user.ID,
+		"login":        user.Login,
+		"githubId":     account.GithubId,
+		"githubAvatar": account.AvatarUrl,
+		"exp":          time.Now().Add(time.Hour * 48).Unix(),
+	}
+
+	return jwtutils.GenerateTokenString(claims)
 }
 
 func GetCtxUserData(c *fiber.Ctx) RequestUser {

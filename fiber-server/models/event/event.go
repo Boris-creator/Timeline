@@ -1,6 +1,10 @@
 package event
 
-import "gorm.io/gorm"
+import (
+	"fiber-server/models/user"
+
+	"gorm.io/gorm"
+)
 
 type Precision string
 
@@ -24,4 +28,5 @@ type Event struct {
 	Descriptions      []EventDescription `gorm:"foreignKey:EventId;"`
 	EventRoles        []EventRole        `gorm:"many2many:event_roles;" json:"eventRoles"`
 	EventParticipants []EventParticipant `gorm:"foreignKey:EventId;"`
+	User              user.User
 }

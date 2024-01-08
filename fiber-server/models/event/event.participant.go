@@ -1,6 +1,10 @@
 package event
 
-import "gorm.io/gorm"
+import (
+	"fiber-server/models/user"
+
+	"gorm.io/gorm"
+)
 
 type EventParticipant struct {
 	gorm.Model
@@ -11,6 +15,7 @@ type EventParticipant struct {
 	EventId       uint       `gorm:"not null"`
 	UserId        uint       `gorm:"not null"`
 	RoleId        uint
+	User          user.User
 }
 
 func (EventParticipant) TableName() string {

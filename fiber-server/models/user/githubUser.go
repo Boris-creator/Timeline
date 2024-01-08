@@ -10,4 +10,5 @@ type GithubUser struct {
 	GithubId  int    `gorm:"not null;unique;"`
 	AvatarUrl string `gorm:"text"`
 	UserId    uint   `gorm:"not null"`
+	User      User
 }

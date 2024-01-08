@@ -42,7 +42,13 @@ func GithubCallback(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).Send([]byte(err.Error()))
 	}
 	userData, _ := oauth.GetGithubData(githubAccessToken)
-	auth.RegisterByGithub(userData)
+	user, account := auth.RegisterByGithub(userData)
+	token := auth.GenerateTokenWithGH(user, account)
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    token,
+		HTTPOnly: true,
+	})
 	return c.Redirect("/")
 }
 

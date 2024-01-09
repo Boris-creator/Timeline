@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	jwtutils "fiber-server/jwtUtils"
+	"fiber-server/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -9,7 +9,7 @@ import (
 
 func IsAuthorised(c *fiber.Ctx) error {
 	tokenString := c.Cookies("token")
-	token, err := jwtutils.ParseTokenString(tokenString)
+	token, err := utils.ParseTokenString(tokenString)
 
 	if err != nil {
 		return c.SendStatus(fiber.StatusUnauthorized)

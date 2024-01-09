@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fiber-server/auth/oauth"
 	"fiber-server/db"
-	jwtutils "fiber-server/jwtUtils"
 	"fiber-server/models/user"
+	"fiber-server/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -81,7 +81,7 @@ func GenerateToken(user user.User) string {
 		"exp":   time.Now().Add(time.Hour * 48).Unix(),
 	}
 
-	return jwtutils.GenerateTokenString(claims)
+	return utils.GenerateTokenString(claims)
 }
 func GenerateTokenWithGH(user user.User, account user.GithubUser) string {
 	claims := jwt.MapClaims{
@@ -92,7 +92,7 @@ func GenerateTokenWithGH(user user.User, account user.GithubUser) string {
 		"exp":          time.Now().Add(time.Hour * 48).Unix(),
 	}
 
-	return jwtutils.GenerateTokenString(claims)
+	return utils.GenerateTokenString(claims)
 }
 
 func GetCtxUserData(c *fiber.Ctx) RequestUser {

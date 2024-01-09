@@ -1,12 +1,9 @@
 package oauth
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
+	"fiber-server/utils"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 )
 
@@ -27,30 +24,26 @@ func GetGithubAccessToken(code string) (string, error) {
 	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
 	githubClientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
 
-	requestBody := map[string]string{
+	requestBody := map[string]any{
 		"client_id":     githubClientID,
 		"client_secret": githubClientSecret,
 		"code":          code,
 	}
-	requestJSON, _ := json.Marshal(requestBody)
 
-	req, _ := http.NewRequest(
-		"POST",
+	responseData, err := utils.Fetch[accessTokenResponse](
 		"https://github.com/login/oauth/access_token",
-		bytes.NewBuffer(requestJSON),
+		"POST",
+		&requestBody,
+		utils.RequestOptions{
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+				"Accept":       "application/json",
+			},
+		},
 	)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
-
-	responseBody, _ := io.ReadAll(response.Body)
-	var responseData accessTokenResponse
-	json.Unmarshal(responseBody, &responseData)
 	if responseData.Error != "" {
 		return "", errors.New(responseData.ErrorDescription)
 	}
@@ -59,23 +52,19 @@ func GetGithubAccessToken(code string) (string, error) {
 }
 
 func GetGithubData(accessToken string) (GithubUserData, error) {
-	var userData GithubUserData
-
-	req, err := http.NewRequest(
-		"GET",
+	userData, err := utils.Fetch[GithubUserData](
 		"https://api.github.com/user",
+		"GET",
 		nil,
+		utils.RequestOptions{
+			Headers: map[string]string{
+				"Authorization": fmt.Sprintf("token %s", accessToken),
+			},
+		},
 	)
 	if err != nil {
-		return userData, err
+		return *userData, err
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", accessToken))
 
-	response, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return userData, err
-	}
-	responseBody, _ := io.ReadAll(response.Body)
-	json.Unmarshal(responseBody, &userData)
-	return userData, nil
+	return *userData, nil
 }

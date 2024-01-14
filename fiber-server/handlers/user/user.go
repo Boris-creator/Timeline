@@ -7,7 +7,7 @@ import (
 )
 
 type RegisterUserRequest struct {
-	Login    string `json:"login" validate:"required,max=255"`
+	Login    string `json:"login" validate:"required,max=255,unique=users.login"`
 	Password string `json:"password" validate:"required,max=70,min=4"`
 }
 type LoginUserRequest struct {

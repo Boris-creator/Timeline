@@ -20,6 +20,7 @@ func main() {
 
 	middleware.ValidatorInstance = validator.New()
 	middleware.ValidatorInstance.RegisterValidation("exists", validators.Exists)
+	middleware.ValidatorInstance.RegisterValidation("unique", validators.Unique)
 
 	db.ConnectDB()
 	engine := html.New("./public/views", ".html")

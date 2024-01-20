@@ -3,41 +3,26 @@ package oauth
 import (
 	"fiber-server/auth"
 	"fiber-server/auth/oauth"
-	"net/url"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func GithubLogin(c *fiber.Ctx) error {
-	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
-	githubRedirectUri := "http://127.0.0.1:3000/github/callback"
-	state, _ := bcrypt.GenerateFromPassword(getGithubSecretForState(), 8)
-
-	queryParams := url.Values{
-		"client_id":    {githubClientID},
-		"redirect_uri": {githubRedirectUri},
-		"state":        {string(state)},
-	}
-	redirectURL := url.URL{
-		Scheme:   "https",
-		Host:     "github.com",
-		Path:     "/login/oauth/authorize",
-		RawQuery: queryParams.Encode(),
-	}
-
+	oauthGH := oauth.OAuthGH{}
+	redirectURL := oauthGH.GetLoginUrl()
 	return c.Status(fiber.StatusMovedPermanently).Redirect(redirectURL.String())
 }
 
 func GithubCallback(c *fiber.Ctx) error {
+	oauthGH := oauth.OAuthGH{}
 	code := c.Query("code")
 	state := c.Query("state")
-	stateError := bcrypt.CompareHashAndPassword([]byte(state), getGithubSecretForState())
+	stateError := bcrypt.CompareHashAndPassword([]byte(state), oauth.GetGithubSecretForState())
 	if stateError != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
-	githubAccessToken, err := oauth.GetGithubAccessToken(code)
+	githubAccessToken, err := oauthGH.GetAccessToken(code)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).Send([]byte(err.Error()))
 	}
@@ -50,8 +35,4 @@ func GithubCallback(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	})
 	return c.Redirect("/")
-}
-
-func getGithubSecretForState() []byte {
-	return []byte(os.Getenv("GITHUB_STATE_SECRET"))
 }

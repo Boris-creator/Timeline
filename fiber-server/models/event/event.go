@@ -20,8 +20,8 @@ type Event struct {
 	ID                uint               `gorm:"primarykey" json:"id"`
 	Name              string             `gorm:"type:varchar(255);not null;" json:"name"`
 	Description       string             `gorm:"type:text;" json:"description"`
-	DateFrom          string             `gorm:"type:time;"`
-	DateTo            string             `gorm:"type:time;"`
+	DateFrom          string             `gorm:"type:time;" json:"dateFrom"`
+	DateTo            string             `gorm:"type:time;" json:"dateTo"`
 	PrecisionFrom     Precision          `gorm:"type:varchar(50);"`
 	PrecisionTo       Precision          `gorm:"type:varchar(50);"`
 	UserId            uint               `gorm:"not null"`
